@@ -1,16 +1,18 @@
 <template>
-  <div class="app">
-    <h1>Liste des questionnaires</h1>
-    <ul>
-      <QuestionnaireItem 
-        v-for="questionnaire in questionnaires" 
-        :key="questionnaire.id" 
-        :questionnaire="questionnaire" 
-        @afficherDetail="afficherDetail"
-      />
-    </ul>
-  </div>
-  <div class="detail">
+  <div class="container">
+    <div class="left-pane">
+      <h1>Liste des questionnaires</h1>
+      <ul>
+        <QuestionnaireItem v-for="questionnaire in questionnaires" :key="questionnaire.id"
+          :questionnaire="questionnaire" @afficherDetail="afficherDetail" />
+      </ul>
+    </div>
+    <div class="right-pane">
+      <div class="detail" v-html="detailContent"></div>
+    </div>
+    <div class="center-pane">
+      <div class="infoQuestion" v-html="infoContent"></div>
+    </div>
   </div>
 </template>
 
@@ -21,6 +23,7 @@ import * as api from './Api.vue';
 
 const questionnaires = ref([]);
 const detailContent = ref('');
+const infoContent = ref('');
 
 onMounted(async () => {
   try {
@@ -32,59 +35,49 @@ onMounted(async () => {
   }
 });
 
-const removeItem = (idToRemove) => {
-  questionnaires.value = questionnaires.value.filter(questionnaire => questionnaire.id !== idToRemove);
-};
+const afficherDetail = async (idToDetail) => {
+  try {
+    const response = await fetch('http://127.0.0.1:5000/questionnaires/' + idToDetail.id + '/questions');
+    const data = await response.json();
+    var affichage = '';
+    data.questions.forEach(question => {
+      affichage += `<h2>${question.title}</h2>`;
+      /*affichage += `<p>${question.question}</p>`;
+      affichage += `<p>${question.question_type}</p>`;
+      affichage += `<p>${question.questionnaire_id}</p>`;
+      affichage += `<p>${question.id}</p>`;
+      affichage += `<p>${question.answers ?? question.answer}</p>`;*/
 
-const modifierItem = (idToModify) => {
-  const questionnaireToModify = questionnaires.value.find(questionnaire => questionnaire.id === idToModify);
-  if (questionnaireToModify) {
-    const newName = prompt('Entrez le nouveau titre du questionnaire', questionnaireToModify.name);
-    if (newName !== null) {
-      questionnaireToModify.name = newName;
-    }
+    });
+    console.log(data);
+    detailContent.value = affichage;
+  } catch (error) {
+    console.error("Erreur lors de l'affichage des détails du questionnaire:", error);
   }
 };
-
-const afficherDetail = (idToDetail) => {
-  const questionnaireToDisplayDetail = questionnaires.value.find(questionnaire => questionnaire.id === idToDetail.id);
-  fetch('http://127.0.0.1:5000/questionnaires/'+idToDetail.id+'/questions')
-  .then(response => response.json())
-  .then(data => {
-    var affichage = "<h3>"+idToDetail.id+" "+questionnaireToDisplayDetail.name+"</h3>";
-    data.questions.forEach(question => {
-      affichage += (question.answers ?? question.answer);
-    });
-    // Sélectionnez l'élément HTML où vous voulez afficher les détails
-    const detailElement = document.querySelector('.detail');
-    // Mettez à jour son contenu avec les détails
-    detailElement.innerHTML = affichage;
-  });
-};
-
-
-
 </script>
 
 <style scoped>
-.app {
-  max-width: 800px;
-  margin: 0 auto;
+.container {
+  display: flex;
+}
+
+.left-pane {
+  flex: 1;
   padding: 20px;
 }
 
-h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
+.right-pane {
+  flex: 1;
+  padding: 20px;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+.infoQuestion {
+  flex: 1;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 10px;
 }
-
-li {
-  margin-bottom: 10px;
-}
-
 </style>
