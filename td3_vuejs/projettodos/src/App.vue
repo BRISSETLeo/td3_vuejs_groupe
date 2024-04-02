@@ -1,83 +1,111 @@
 <template>
-  <div class="container">
-    <div class="left-pane">
-      <h1>Liste des questionnaires</h1>
-      <ul>
-        <QuestionnaireItem v-for="questionnaire in questionnaires" :key="questionnaire.id"
-          :questionnaire="questionnaire" @afficherDetail="afficherDetail" />
-      </ul>
-    </div>
-    <div class="right-pane">
-      <div class="detail" v-html="detailContent"></div>
-    </div>
-    <div class="center-pane">
-      <div class="infoQuestion" v-html="infoContent"></div>
-    </div>
+  <div>
+    <h1>Liste des questionnaires</h1>
+    <button @click="showQuestionnaireForm">Créer un questionnaire</button>
+    <questionnaire-form v-if="showForm" @createQuestionnaire="createQuestionnaire"></questionnaire-form>
+    <ul>
+      <li v-for="questionnaire in questionnaires" :key="questionnaire.id">
+        {{ questionnaire.name }}
+        <button @click="showQuestionnaireDetail(questionnaire)">Afficher les détails</button>
+        <button @click="deleteQuestionnaire(questionnaire.id)">Supprimer</button>
+        <button @click="ajouterQuestion(questionnaire.id)">Ajouter une question</button>
+      </li>
+    </ul>
+    <div class="detail" v-html="detailContent"></div>
+    
+    <question-form v-if="showQuestionForm" :questionnaireId="selectedQuestionnaireId" @createQuestion="createQuestion"></question-form>
   </div>
 </template>
 
 <script setup>
-import QuestionnaireItem from './components/QuestionnaireItem.vue';
-import { ref, onMounted } from 'vue';
+import QuestionnaireForm from './components/QuestionnaireForm.vue';
+import QuestionForm from './components/QuestionForm.vue';
+import { ref } from 'vue';
 import * as api from './Api.vue';
 
 const questionnaires = ref([]);
+const showForm = ref(false);
 const detailContent = ref('');
-const infoContent = ref('');
+const showQuestionForm = ref(false);
+const selectedQuestionnaireId = ref(null);
 
-onMounted(async () => {
+async function fetchQuestionnaires() {
   try {
     const data = await api.recupererQuestionnaires();
-    console.log(data.questionnaires);
     questionnaires.value = data.questionnaires.map(questionnaire => ({ id: questionnaire.id, name: questionnaire.name }));
   } catch (error) {
     console.error("Erreur lors de la récupération des questionnaires:", error);
   }
-});
+}
 
-const afficherDetail = async (idToDetail) => {
+fetchQuestionnaires();
+
+const createQuestionnaire = async (formData) => {
   try {
-    const response = await fetch('http://127.0.0.1:5000/questionnaires/' + idToDetail.id + '/questions');
-    const data = await response.json();
+    await api.creerQuestionnaire(formData);
+    fetchQuestionnaires();
+    showForm.value = false;
+  } catch (error) {
+    console.error("Erreur lors de la création du questionnaire:", error);
+  }
+};
+
+const createQuestion = async (id_questionnaire, formData) => {
+  console.log(id_questionnaire, formData);
+  try {
+    await api.creerQuestion(id_questionnaire, formData);
+    showQuestionForm.value = false;
+  } catch (error) {
+    console.error("Erreur lors de la création de la question:", error);
+  }
+};
+
+const showQuestionnaireForm = () => {
+  showForm.value = true;
+};
+
+const showQuestionnaireDetail = async (questionnaire) => {
+  try {
+    const data = await api.recupererQuestions(questionnaire.id);
     var affichage = '';
     data.questions.forEach(question => {
-      affichage += `<h2>${question.title}</h2>`;
-      /*affichage += `<p>${question.question}</p>`;
-      affichage += `<p>${question.question_type}</p>`;
-      affichage += `<p>${question.questionnaire_id}</p>`;
-      affichage += `<p>${question.id}</p>`;
-      affichage += `<p>${question.answers ?? question.answer}</p>`;*/
-
+      affichage += `<div><h2>${question.title}</h2>
+                    <button @click="modifierQuestion(question.id)">Modifier</button>
+                    <button @click="supprimerQuestion(question.id)">Supprimer</button>
+                    </div>`;
     });
-    console.log(data);
     detailContent.value = affichage;
   } catch (error) {
     console.error("Erreur lors de l'affichage des détails du questionnaire:", error);
   }
 };
+
+const deleteQuestionnaire = async (id) => {
+  try {
+    await api.supprimerQuestionnaire(id);
+    fetchQuestionnaires();
+  } catch (error) {
+    console.error("Erreur lors de la suppression du questionnaire:", error);
+  }
+};
+
+const modifierQuestion = (questionId) => {
+  // Implémentez la logique pour modifier une question ici
+};
+
+const supprimerQuestion = (questionId) => {
+  // Implémentez la logique pour supprimer une question ici
+};
+
+const ajouterQuestion = async (questionnaireId) => {
+  selectedQuestionnaireId.value = questionnaireId;
+  showQuestionForm.value = true;
+};
+
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-}
-
-.left-pane {
-  flex: 1;
-  padding: 20px;
-}
-
-.right-pane {
-  flex: 1;
-  padding: 20px;
-}
-
-.infoQuestion {
-  flex: 1;
-  padding: 20px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin: 10px;
+.detail {
+  margin-top: 20px;
 }
 </style>

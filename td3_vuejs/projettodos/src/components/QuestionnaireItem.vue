@@ -1,9 +1,7 @@
 <template>
-  <li>
     <p @click="afficherDetail">{{ questionnaire.name }}</p>
-    <!-- <button @click="remove">Supprimer</button>
-    <button @click="modifier">Modifier le nom du questionnaire</button> -->
-  </li>
+    <button @click="remove">Supprimer</button>
+    <button @click="modifier">Modifier le nom du questionnaire</button>
 </template>
 
 <script>
