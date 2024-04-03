@@ -61,4 +61,19 @@ export async function creerQuestion(id, formData) {
     throw error;
   }
 }
+
+export async function modifierQuestion(id, formData) {
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/questions/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+  } catch (error) {
+    console.error("Erreur lors de la modification de la question:", error);
+    throw error;
+  }
+}
 </script>

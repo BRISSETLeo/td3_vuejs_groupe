@@ -128,9 +128,11 @@ def update_questionnaire(id):
 # DELETE /questionnaires/<int:id>
 @app.route('/questionnaires/<int:id>', methods=['DELETE'])
 def delete_questionnaire(id):
-    questionnaire = Questionnaire.get_questionnaire(id)
+    questionnaire = Questionnaire.query.get(id)
     if questionnaire is None:
         abort(404)
+    for question in Questionnaire.get_questions_by_questionnaire(id):
+        db.session.delete(question)
     db.session.delete(questionnaire)
     db.session.commit()
     return jsonify({'result': True})

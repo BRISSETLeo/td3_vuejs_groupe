@@ -102,6 +102,16 @@ const ajouterQuestion = async (questionnaireId) => {
   showQuestionForm.value = true;
 };
 
+const editQuestion = async (id_questionnaire, formData) => {
+  console.log(id_questionnaire, formData);
+  try {
+    await api.modifierQuestion(id_questionnaire, formData);
+    showQuestionForm.value = false;
+  } catch (error) {
+    console.error("Erreur lors de la modification de la question:", error);
+  }
+};
+
 </script>
 
 <style scoped>
