@@ -76,4 +76,15 @@ export async function modifierQuestion(id, formData) {
     throw error;
   }
 }
+
+export async function supprimerQuestion(id) {
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/questionnaires/${id}/questions`, {
+      method: 'DELETE'
+    });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la question:", error);
+    throw error;
+  }
+}
 </script>

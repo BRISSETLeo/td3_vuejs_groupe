@@ -11,7 +11,9 @@
         <button @click="ajouterQuestion(questionnaire.id)">Ajouter une question</button>
       </li>
     </ul>
-    <div class="detail" v-html="detailContent"></div>
+    <div class="detail">
+      <question v-if="showQuestion" v-for="question in questions" :key="question.id" :question="question" @editQuestion="modifierQuestion" @deleteQuestion="supprimerQuestion"></question>
+    </div>
     
     <question-form v-if="showQuestionForm" :questionnaireId="selectedQuestionnaireId" @annulerCreateQuestion="annulerCreateQuestion" @createQuestion="createQuestion"></question-form>
   </div>
@@ -20,14 +22,17 @@
 <script setup>
 import QuestionnaireForm from './components/QuestionnaireForm.vue';
 import QuestionForm from './components/QuestionForm.vue';
+import Question from './views/Questions.vue'
 import { ref } from 'vue';
 import * as api from './Api.vue';
 
 const questionnaires = ref([]);
 const showForm = ref(false);
-const detailContent = ref('');
 const showQuestionForm = ref(false);
+const showQuestion = ref(false);
+const detailContent = ref('');
 const selectedQuestionnaireId = ref(null);
+const questions = ref([]);
 
 async function fetchQuestionnaires() {
   try {
@@ -55,7 +60,6 @@ const annulerCreateQuestion = async () => {
 };
 
 const createQuestion = async (id_questionnaire, formData) => {
-  console.log(id_questionnaire, formData);
   try {
     await api.creerQuestion(id_questionnaire, formData);
     showQuestionForm.value = false;
@@ -75,14 +79,8 @@ const showQuestionnaireForm = () => {
 const showQuestionnaireDetail = async (questionnaire) => {
   try {
     const data = await api.recupererQuestions(questionnaire.id);
-    var affichage = '';
-    data.questions.forEach(question => {
-      affichage += `<div><h2>${question.title}</h2>
-                    <button @click="modifierQuestion(question.id)">Modifier</button>
-                    <button @click="supprimerQuestion(question.id)">Supprimer</button>
-                    </div>`;
-    });
-    detailContent.value = affichage;
+    questions.value = data.questions;
+    showQuestion.value = true;
   } catch (error) {
     console.error("Erreur lors de l'affichage des détails du questionnaire:", error);
   }
@@ -98,29 +96,27 @@ const deleteQuestionnaire = async (id) => {
   }
 };
 
-const modifierQuestion = (questionId) => {
-  // Implémentez la logique pour modifier une question ici
-};
-
-const supprimerQuestion = (questionId) => {
-  // Implémentez la logique pour supprimer une question ici
-};
-
 const ajouterQuestion = async (questionnaireId) => {
   selectedQuestionnaireId.value = questionnaireId;
   showQuestionForm.value = true;
 };
 
-const editQuestion = async (id_questionnaire, formData) => {
-  console.log(id_questionnaire, formData);
+const modifierQuestion = async (id_question, formData) => {
   try {
-    await api.modifierQuestion(id_questionnaire, formData);
-    showQuestionForm.value = false;
+    await api.modifierQuestion(id_question, formData);
   } catch (error) {
     console.error("Erreur lors de la modification de la question:", error);
   }
 };
 
+const supprimerQuestion = async(id) => {
+  try {
+    await api.supprimerQuestion(id);
+    questions.value = questions.value.filter(q => q.id !== id);
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la question:", error);
+  }
+};
 </script>
 
 <style scoped>
