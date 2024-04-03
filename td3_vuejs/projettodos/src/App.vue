@@ -2,7 +2,7 @@
   <div>
     <h1>Liste des questionnaires</h1>
     <button @click="showQuestionnaireForm">Créer un questionnaire</button>
-    <questionnaire-form v-if="showForm" @createQuestionnaire="createQuestionnaire"></questionnaire-form>
+    <questionnaire-form v-if="showForm" @annulerCreateQuestionnaire="annulerCreateQuestionnaire" @createQuestionnaire="createQuestionnaire"></questionnaire-form>
     <ul>
       <li v-for="questionnaire in questionnaires" :key="questionnaire.id">
         {{ questionnaire.name }}
@@ -13,7 +13,7 @@
     </ul>
     <div class="detail" v-html="detailContent"></div>
     
-    <question-form v-if="showQuestionForm" :questionnaireId="selectedQuestionnaireId" @createQuestion="createQuestion"></question-form>
+    <question-form v-if="showQuestionForm" :questionnaireId="selectedQuestionnaireId" @annulerCreateQuestion="annulerCreateQuestion" @createQuestion="createQuestion"></question-form>
   </div>
 </template>
 
@@ -50,6 +50,10 @@ const createQuestionnaire = async (formData) => {
   }
 };
 
+const annulerCreateQuestion = async () => {
+  showQuestionForm.value = false;
+};
+
 const createQuestion = async (id_questionnaire, formData) => {
   console.log(id_questionnaire, formData);
   try {
@@ -58,6 +62,10 @@ const createQuestion = async (id_questionnaire, formData) => {
   } catch (error) {
     console.error("Erreur lors de la création de la question:", error);
   }
+};
+
+const annulerCreateQuestionnaire = async () => {
+  showForm.value = false;
 };
 
 const showQuestionnaireForm = () => {
@@ -84,6 +92,7 @@ const deleteQuestionnaire = async (id) => {
   try {
     await api.supprimerQuestionnaire(id);
     fetchQuestionnaires();
+    detailContent.value = '';
   } catch (error) {
     console.error("Erreur lors de la suppression du questionnaire:", error);
   }

@@ -4,11 +4,10 @@
     <form @submit.prevent="submitForm">
       <label>Contenu:</label>
       <input type="text" v-model="title" required>
-      <label>Question type:</label>
-      <input type="text" v-model="questionType" required>
       <label>Réponse</label>
       <input type="text" v-model="answer" required>
       <button type="submit">{{ mode === 'edit' ? 'Modifier' : 'Créer' }}</button>
+      <button type="button" @click="annulerCreateQuestion">Annuler</button>
     </form>
   </div>
 </template>
@@ -19,7 +18,7 @@ export default {
   data() {
     return {
       title: this.mode === 'edit' ? this.question.title : '',
-      questionType: this.mode === 'edit' ? this.question.questionType : '',
+      questionType: 'QuestionS',
       answer: this.mode === 'edit' ? this.question.answer : ''
     }
   },
@@ -32,7 +31,11 @@ export default {
       };
       const questionnaireId = this.questionnaireId;
       this.$emit(this.mode === 'edit' ? 'editQuestion' : 'createQuestion', questionnaireId, formData);
-    }
+    },
+    annulerCreateQuestion() {
+      this.$emit('annulerCreateQuestion');
+    },
+    emits: ['createQuestion', 'editQuestion', 'annulerCreateQuestion']
   }
 }
 </script>

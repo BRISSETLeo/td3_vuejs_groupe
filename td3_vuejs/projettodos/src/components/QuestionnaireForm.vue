@@ -5,14 +5,14 @@
       <label>Titre:</label>
       <input type="text" v-model="name" required>
       <button type="submit">{{ mode === 'edit' ? 'Modifier' : 'Créer' }}</button>
-      <button type="button" @click="$emit('annuler')">Annuler</button>
+      <button type="button" @click="annulerCreateQuestionnaire">Annuler</button>
     </form>
   </div>
 </template>
 
 <script>
 export default {
-  props: ['mode', 'questionnaire', 'annuler'],
+  props: ['mode', 'questionnaire'],
   data() {
     return {
       name: this.mode === 'edit' ? this.questionnaire.title : ''
@@ -25,6 +25,10 @@ export default {
       };
       this.$emit(this.mode === 'edit' ? 'editQuestionnaire' : 'createQuestionnaire', formData);
     },
-  }
+    annulerCreateQuestionnaire() {
+      this.$emit('annulerCreateQuestionnaire');
+    },
+  },
+  emits: ['createQuestionnaire', 'editQuestionnaire', 'annulerCreateQuestionnaire']
 }
 </script>
