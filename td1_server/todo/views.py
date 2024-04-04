@@ -200,7 +200,7 @@ def update_question(id, question_id):
 # DELETE /questionnaires/<int:id>/questions/<int:id>
 @app.route('/questionnaires/<int:id>/questions/<int:question_id>', methods=['DELETE'])
 def delete_question(id, question_id):
-    questionnaire = Questionnaire.get_questionnaire(id)
+    questionnaire = Questionnaire.query.get(id)
     if questionnaire is None:
         abort(404)
     question = QuestionS.query.get(question_id)
