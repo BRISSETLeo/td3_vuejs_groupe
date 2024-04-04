@@ -77,9 +77,9 @@ export async function modifierQuestion(id, formData) {
   }
 }
 
-export async function supprimerQuestion(id) {
+export async function supprimerQuestion(id, id_question) {
   try {
-    const response = await fetch(`http://127.0.0.1:5000/questionnaires/${id}/questions`, {
+    const response = await fetch(`http://127.0.0.1:5000/questionnaires/${id}/questions/${id_question}`, {
       method: 'DELETE'
     });
   } catch (error) {

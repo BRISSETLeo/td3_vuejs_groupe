@@ -14,6 +14,7 @@
 export default {
   props: {
     question: Object,
+    questionnaire_id: Number
   },
   methods: {
     editQuestion() {

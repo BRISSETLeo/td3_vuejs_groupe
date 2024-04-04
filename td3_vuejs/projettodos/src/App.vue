@@ -33,6 +33,7 @@ const showQuestion = ref(false);
 const detailContent = ref('');
 const selectedQuestionnaireId = ref(null);
 const questions = ref([]);
+const questionnaire_id = ref(null);
 
 async function fetchQuestionnaires() {
   try {
@@ -80,6 +81,7 @@ const showQuestionnaireDetail = async (questionnaire) => {
   try {
     const data = await api.recupererQuestions(questionnaire.id);
     questions.value = data.questions;
+    questionnaire_id.value = questionnaire.id;
     showQuestion.value = true;
   } catch (error) {
     console.error("Erreur lors de l'affichage des détails du questionnaire:", error);
@@ -110,8 +112,9 @@ const modifierQuestion = async (id_question, formData) => {
 };
 
 const supprimerQuestion = async(id) => {
+  if(questionnaire_id == null) return;
   try {
-    await api.supprimerQuestion(id);
+    await api.supprimerQuestion(questionnaire_id.value, id);
     questions.value = questions.value.filter(q => q.id !== id);
   } catch (error) {
     console.error("Erreur lors de la suppression de la question:", error);
