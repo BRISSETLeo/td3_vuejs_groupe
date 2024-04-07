@@ -1,40 +1,129 @@
 <template>
   <div>
-    <h1>Liste des tâches</h1>
+    <h1>Liste des questionnaires</h1>
+    <button @click="showQuestionnaireForm">Créer un questionnaire</button>
+    <questionnaire-form v-if="showForm" @annulerCreateQuestionnaire="annulerCreateQuestionnaire" @createQuestionnaire="createQuestionnaire"></questionnaire-form>
     <ul>
-      <TodoItem v-for="task in tasks" :key="task.id" :task="task" @remove="removeItem" @modifier="modifierItem"/>
+      <li v-for="questionnaire in questionnaires" :key="questionnaire.id">
+        {{ questionnaire.name }}
+        <button @click="showQuestionnaireDetail(questionnaire)">Afficher les détails</button>
+        <button @click="deleteQuestionnaire(questionnaire.id)">Supprimer</button>
+        <button @click="ajouterQuestion(questionnaire.id)">Ajouter une question</button>
+      </li>
     </ul>
+    <div class="detail">
+      <question v-if="showQuestion" v-for="question in questions" :key="question.id" :question="question" @editQuestion="modifierQuestion" @deleteQuestion="supprimerQuestion"></question>
+    </div>
+    
+    <question-form v-if="showQuestionForm" :questionnaireId="selectedQuestionnaireId" @annulerCreateQuestion="annulerCreateQuestion" @createQuestion="createQuestion"></question-form>
   </div>
 </template>
 
 <script setup>
-import TodoItem from './components/TodoItem.vue';
-import { ref, onMounted } from 'vue';
+import QuestionnaireForm from './components/QuestionnaireForm.vue';
+import QuestionForm from './components/QuestionForm.vue';
+import Question from './views/Questions.vue'
+import { ref } from 'vue';
+import * as api from './Api.vue';
 
-const tasks = ref([]);
+const questionnaires = ref([]);
+const showForm = ref(false);
+const showQuestionForm = ref(false);
+const showQuestion = ref(false);
+const detailContent = ref('');
+const selectedQuestionnaireId = ref(null);
+const questions = ref([]);
+const questionnaire_id = ref(null);
 
-onMounted(async () => {
-  const response = await fetch('http://localhost:5000/todo/api/v1.0/tasks');
-  const data = await response.json();
-  tasks.value = data.tasks.map(task => ({ id: task.id, title: task.description }));
-});
+async function fetchQuestionnaires() {
+  try {
+    const data = await api.recupererQuestionnaires();
+    questionnaires.value = data.questionnaires.map(questionnaire => ({ id: questionnaire.id, name: questionnaire.name }));
+  } catch (error) {
+    console.error("Erreur lors de la récupération des questionnaires:", error);
+  }
+}
 
-const removeItem = (id) => {
-  tasks.value = tasks.value.filter(task => task.id !== id.id);
+fetchQuestionnaires();
+
+const createQuestionnaire = async (formData) => {
+  try {
+    await api.creerQuestionnaire(formData);
+    fetchQuestionnaires();
+    showForm.value = false;
+  } catch (error) {
+    console.error("Erreur lors de la création du questionnaire:", error);
+  }
 };
 
-const modifierItem = (id) => {
-  for (let i = 0; i < tasks.value.length; i++) {
-    if (tasks.value[i].id === id.id) {
-      tasks.value[i].title = prompt('Entrez le nouveau titre de la tâche');
-      break;
-    }
+const annulerCreateQuestion = async () => {
+  showQuestionForm.value = false;
+};
+
+const createQuestion = async (id_questionnaire, formData) => {
+  try {
+    await api.creerQuestion(id_questionnaire, formData);
+    showQuestionForm.value = false;
+  } catch (error) {
+    console.error("Erreur lors de la création de la question:", error);
+  }
+};
+
+const annulerCreateQuestionnaire = async () => {
+  showForm.value = false;
+};
+
+const showQuestionnaireForm = () => {
+  showForm.value = true;
+};
+
+const showQuestionnaireDetail = async (questionnaire) => {
+  try {
+    const data = await api.recupererQuestions(questionnaire.id);
+    questions.value = data.questions;
+    questionnaire_id.value = questionnaire.id;
+    showQuestion.value = true;
+  } catch (error) {
+    console.error("Erreur lors de l'affichage des détails du questionnaire:", error);
+  }
+};
+
+const deleteQuestionnaire = async (id) => {
+  try {
+    await api.supprimerQuestionnaire(id);
+    fetchQuestionnaires();
+    detailContent.value = '';
+  } catch (error) {
+    console.error("Erreur lors de la suppression du questionnaire:", error);
+  }
+};
+
+const ajouterQuestion = async (questionnaireId) => {
+  selectedQuestionnaireId.value = questionnaireId;
+  showQuestionForm.value = true;
+};
+
+const modifierQuestion = async (id_question, formData) => {
+  try {
+    await api.modifierQuestion(id_question, formData);
+  } catch (error) {
+    console.error("Erreur lors de la modification de la question:", error);
+  }
+};
+
+const supprimerQuestion = async(id) => {
+  if(questionnaire_id == null) return;
+  try {
+    await api.supprimerQuestion(questionnaire_id.value, id);
+    questions.value = questions.value.filter(q => q.id !== id);
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la question:", error);
   }
 };
 </script>
 
 <style scoped>
-.app {
-  text-align: center;
+.detail {
+  margin-top: 20px;
 }
 </style>

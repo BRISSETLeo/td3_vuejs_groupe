@@ -1,6 +1,6 @@
 from flask import jsonify, abort, make_response, request, url_for
 from .app import app
-from .models import tasks, Question, Questionnaire, db
+from .models import tasks, QuestionS, Questionnaire, db
 
 def make_public_task(task):
     new_task = {}
@@ -128,9 +128,11 @@ def update_questionnaire(id):
 # DELETE /questionnaires/<int:id>
 @app.route('/questionnaires/<int:id>', methods=['DELETE'])
 def delete_questionnaire(id):
-    questionnaire = Questionnaire.get_questionnaire(id)
+    questionnaire = Questionnaire.query.get(id)
     if questionnaire is None:
         abort(404)
+    for question in Questionnaire.get_questions_by_questionnaire(id):
+        db.session.delete(question)
     db.session.delete(questionnaire)
     db.session.commit()
     return jsonify({'result': True})
@@ -149,9 +151,9 @@ def create_question(id):
     questionnaire = Questionnaire.get_questionnaire(id)
     if questionnaire is None:
         abort(404)
-    if not request.json or not 'title' in request.json or not 'questionType' in request.json:
+    if not request.json or not 'title' in request.json or not 'questionType' in request.json or not 'answer' in request.json:
         abort(400)
-    question = Question(request.json['title'], request.json['questionType'], questionnaire.id)
+    question = QuestionS(request.json['title'], request.json['questionType'], request.json['answer'], questionnaire['id'])
     db.session.add(question)
     db.session.commit()
     return jsonify(question.to_json()), 201
@@ -162,7 +164,7 @@ def get_question(id, question_id):
     questionnaire = Questionnaire.get_questionnaire(id)
     if questionnaire is None:
         abort(404)
-    question = Question.query.get(question_id)
+    question = QuestionS.query.get(question_id)
     if question is None:
         abort(404)
     return jsonify(question.to_json())
@@ -170,7 +172,7 @@ def get_question(id, question_id):
 # GET /questions/<int:id>
 @app.route('/questions/<int:id>', methods=['GET'])
 def get_question_2(id):
-    question = Question.query.get(id)
+    question = QuestionS.query.get(id)
     if question is None:
         abort(404)
     return jsonify(question.to_json())
@@ -181,7 +183,7 @@ def update_question(id, question_id):
     questionnaire = Questionnaire.get_questionnaire(id)
     if questionnaire is None:
         abort(404)
-    question = Question.query.get(question_id)
+    question = QuestionS.query.get(question_id)
     if question is None:
         abort(404)
     if not request.json:
@@ -198,10 +200,10 @@ def update_question(id, question_id):
 # DELETE /questionnaires/<int:id>/questions/<int:id>
 @app.route('/questionnaires/<int:id>/questions/<int:question_id>', methods=['DELETE'])
 def delete_question(id, question_id):
-    questionnaire = Questionnaire.get_questionnaire(id)
+    questionnaire = Questionnaire.query.get(id)
     if questionnaire is None:
         abort(404)
-    question = Question.query.get(question_id)
+    question = QuestionS.query.get(question_id)
     if question is None:
         abort(404)
     db.session.delete(question)
